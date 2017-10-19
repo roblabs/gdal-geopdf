@@ -4,6 +4,12 @@ This project shows how to process GeoPDFs from the [USGS](https://viewer.nationa
 
 ## US Topo
 
+### Wizard Island at Crater Lake National Park
+
+* At 75 DPI (left)
+* And at 300 DPI (right)
+![](assets/readme-wizard-island.png)
+
 ### Process Examples
 
 #### `gdalinfo`
