@@ -1,5 +1,5 @@
 # Usage
-#  alias usgs='docker run -it --rm -v $(pwd):/data roblabs/usgs /bin/bash'
+#  alias usgs='docker run -it --rm -v $(pwd):/data roblabs/usgs:usgs /bin/bash'
 # Build
 #  docker build -t roblabs/usgs:latest .
 
