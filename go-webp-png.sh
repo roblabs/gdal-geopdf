@@ -2,7 +2,7 @@ export FORMAT=$2
 export format_lower=png
 export MIN=$3
 export MAX=$4
-export INPUT_FILE=tmp/$1.vrt
+export INPUT_FILE=$1.vrt
 
 # Usage
 # ./go-webp.sh whitney WEBP 7 15
