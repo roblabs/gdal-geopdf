@@ -5,6 +5,8 @@
 
 
 getJsonPDF() {
+  echo
+  echo "########## getJsonPDF"
   # json & PDF
   ## 1. Set Values from the National Map
   metadata=https://www.sciencebase.gov/catalog/item/$sourceId
@@ -13,7 +15,7 @@ getJsonPDF() {
   ### Get JSON
   if [ -f json/$sourceId.json ]
   then
-      echo $sourceId.json exists
+      echo $sourceId.json exists, skipping
   else
       echo the file does not exist
       curl $metadata?format=json > json/$sourceId.json
@@ -41,7 +43,7 @@ getJsonPDF() {
 
   if [ -f pdf/$base.pdf ]
   then
-      echo pdf/$base.pdf exists
+      echo File pdf/$base.pdf exists, skipping
   else
       echo pdf/$base.pdf does not exist
       wget -N $pdfUrl -P pdf
@@ -57,15 +59,11 @@ getJsonPDF() {
   cat json/$sourceId.json | json spatial.boundingBox.maxX > /tmp/xmax.txt;
   cat json/$sourceId.json | json spatial.boundingBox.maxY > /tmp/ymax.txt;
 
-  xmin=$(cat /tmp/xmin.txt); echo $xmin
-  ymin=$(cat /tmp/ymin.txt); echo $ymin
-  xmax=$(cat /tmp/xmax.txt); echo $xmax
-  ymax=$(cat /tmp/ymax.txt); echo $ymax
-
-  # -116.75
-  # 33.125
-  # -116.625
-  # 33.25
+  xmin=$(cat /tmp/xmin.txt);
+  ymin=$(cat /tmp/ymin.txt);
+  xmax=$(cat /tmp/xmax.txt);
+  ymax=$(cat /tmp/ymax.txt);
+  echo bbox = $xmin, $ymin, $xmax, $ymax # -116.75, 33.125, -116.625, 33.25
 }
 
 # 5.  Convert to GeoTiff
@@ -73,16 +71,17 @@ getJsonPDF() {
 # Crop out just the map data
 #  -te xmin ymin xmax ymax:
 makeTopo() {
-
+  echo
+  echo "########## makeTopo"
   if [ -f $FRIENDLY_TMP_FOLDER/$name-$base.topo.$DPI.tif ]
   then
-      echo $FRIENDLY_TMP_FOLDER/$name-$base.topo.$DPI.tif exists
+      echo $FRIENDLY_TMP_FOLDER/$name-$base.topo.$DPI.tif exists, skipping
   else
     gdal_translate pdf/$name-$base.pdf $FRIENDLY_TMP_FOLDER/$name-$base.topo.$DPI.tif \
       -co COMPRESS=LZW \
       --config GDAL_PDF_LAYERS "all" \
       --config GDAL_PDF_DPI $DPI \
-      --config GDAL_PDF_LAYERS_OFF "Images"
+      --config GDAL_PDF_LAYERS_OFF "Map_Frame.Projection_and_Grids,Map_Frame.PLSS,Map_Frame.Terrain,Images"
 
     gdalwarp -t_srs EPSG:4326 -dstalpha \
       -co COMPRESS=LZW \
@@ -93,6 +92,8 @@ makeTopo() {
 }
 
 makeFSTopo() {
+  echo
+  echo "########## makeFSTopo"
   if [ -f $FRIENDLY_TMP_FOLDER/$FSTOPO.$FSTOPO_DPI.tif ]
   then
     echo FSTopo exists = $FRIENDLY_TMP_FOLDER/$FSTOPO.$FSTOPO_DPI.tif
@@ -114,6 +115,8 @@ makeFSTopo() {
 
 ### USGS TOPO Raster images
 makeOrthoImage() {
+  echo
+  echo "########## makeOrthoImage"
   gdal_translate pdf/$name-$base.pdf $FRIENDLY_TMP_FOLDER/$name-$base.ortho.$DPI.tif \
     -co COMPRESS=LZW \
     --config GDAL_PDF_LAYERS "Images.Orthoimage" \
@@ -128,7 +131,7 @@ makeOrthoImage() {
 
 makeShaded_Relief() {
   echo
-  echo "##########"
+  echo "########## makeShaded_Relief"
   echo $FRIENDLY_TMP_FOLDER/$name-$base.relief.$DPI.tif
   if [ -f $FRIENDLY_TMP_FOLDER/$name-$base.relief.$DPI.tif ]
   then
@@ -154,20 +157,12 @@ makeWebP() {
 }
 
 
+export FRIENDLY_TMP_FOLDER="."
+echo FRIENDLY_TMP_FOLDER = $FRIENDLY_TMP_FOLDER >&2
+
+
 while getopts "D:F:N:P:S:TRWO" opt; do
   case $opt in
-    T)
-      echo "-T to produce a topo" >&2
-      makeTopo
-      ;;
-    R)
-      echo "-R for Shaded Relief" >&2
-      makeShaded_Relief
-      ;;
-    W)
-      echo "-W for .mbtiles and WEBP process" >&2
-      makeWebP
-      ;;
     D)
       export DPI="$OPTARG"
       echo DPI = $DPI >&2
@@ -176,6 +171,9 @@ while getopts "D:F:N:P:S:TRWO" opt; do
       export FSTOPO="$OPTARG"
       echo FSTOPO = $FSTOPO >&2
       makeFSTopo
+      ;;
+    O)
+      makeOrthoImage
       ;;
     P)
       export FSTOPO_DPI="$OPTARG"
@@ -186,18 +184,38 @@ while getopts "D:F:N:P:S:TRWO" opt; do
       echo FRIENDLY_TMP_FOLDER = $FRIENDLY_TMP_FOLDER >&2
       mkdir -p $FRIENDLY_TMP_FOLDER
       ;;
+    R)
+      echo "-R for Shaded Relief" >&2
+      makeShaded_Relief
+      ;;
     S)
+      echo "-S for sourceId from the USGS" >&2
       export sourceId="$OPTARG"
       echo sourceId = $sourceId >&2
       getJsonPDF
       ;;
-    O)
-      makeOrthoImage
+    T)
+      echo "-T to produce a topo" >&2
+      makeTopo
+      ;;
+    W)
+      echo "-W for .mbtiles and WEBP process" >&2
+      makeWebP
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       echo "Usage" >&2
-      echo "  sh usgs.sh -S 5825aec2e4b01fad86dd149c -D 300 -T -O -R" >&2
+      echo "  # from source at 300 Dpi, makeTopo, makeShaded_Relief" >&2
+      echo "  sh usgs.sh -S 5825aec2e4b01fad86dd149c -D 300 -T -R" >&2
+
+      echo "" >&2
+      echo "  # from source at 300 Dpi, makeTopo, makeShaded_Relief, makeOrthoImage" >&2
+      echo "  sh usgs.sh -S 5825aec2e4b01fad86dd149c -D 300 -T -R -O" >&2
+
+      echo "" >&2
+      echo "  # Test with all main parameters" >&2
+      echo "  sh usgs.sh -N foofoo -S 5825aec2e4b01fad86dd149c -D 25 -T -R -O" >&2
+
       ;;
   esac
 done
