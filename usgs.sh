@@ -103,7 +103,7 @@ makeFSTopo() {
 
     gdal_translate pdf/$FSTOPO $FRIENDLY_TMP_FOLDER/$FSTOPO.$FSTOPO_DPI.tif \
       -co COMPRESS=LZW \
-      --config GDAL_PDF_LAYERS_OFF "Quadrangle.Contour_Labels,Quadrangle.Contours,Quadrangle.UTM_Grid" \
+      --config GDAL_PDF_LAYERS_OFF "Quadrangle.Contour_Labels,Quadrangle.Contours,Quadrangle.UTM_Grid,Quadrangle.PLSS" \
       --config GDAL_PDF_DPI $FSTOPO_DPI
 
     gdalwarp -t_srs EPSG:4326 -dstalpha \
@@ -216,6 +216,9 @@ while getopts "D:F:N:P:S:TRWO" opt; do
       echo "  # Test with all main parameters" >&2
       echo "  sh usgs.sh -N foofoo -S 5825aec2e4b01fad86dd149c -D 25 -T -R -O" >&2
 
+      echo "" >&2
+      echo "  # Test UStopo and FSTopo" >&2
+      echo "  sh usgs.sh -N tempFolder -S 5825df9be4b01fad86e2db0a -D 100 -R -P 100 -F 415207845_Stickney_FSTopo.pdf" >&2
       ;;
   esac
 done
