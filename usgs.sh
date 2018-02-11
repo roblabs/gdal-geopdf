@@ -94,6 +94,15 @@ makeTopo() {
 makeFSTopo() {
   echo
   echo "########## makeFSTopo"
+
+  echo $FRIENDLY_TMP_FOLDER/$name-$base.topo.$FSTOPO_DPI.tif exists, moving
+  mv ./tmp/all/$name-$base.topo.crop.$FSTOPO_DPI.tif $FRIENDLY_TMP_TOPO_FOLDER
+  if [ -f $FRIENDLY_TMP_FOLDER/$name-$base.topo.$FSTOPO_DPI.tif ]
+  then
+      echo $FRIENDLY_TMP_FOLDER/$name-$base.topo.$FSTOPO_DPI.tif exists, 2
+  fi
+
+
   if [ -f $FRIENDLY_TMP_FOLDER/$FSTOPO.$FSTOPO_DPI.tif ]
   then
     echo FSTopo exists = $FRIENDLY_TMP_FOLDER/$FSTOPO.$FSTOPO_DPI.tif
@@ -132,10 +141,11 @@ makeOrthoImage() {
 makeShaded_Relief() {
   echo
   echo "########## makeShaded_Relief"
-  echo $FRIENDLY_TMP_FOLDER/$name-$base.relief.$DPI.tif
-  if [ -f $FRIENDLY_TMP_FOLDER/$name-$base.relief.$DPI.tif ]
+  echo $FRIENDLY_TMP_FOLDER/$name-$base.relief.crop.$DPI.tif
+  if [ -f $FRIENDLY_TMP_FOLDER/$name-$base.relief.crop.$DPI.tif ]
   then
-      echo   SKIPPING, exists = $FRIENDLY_TMP_FOLDER/$name-$base.relief.$DPI.tif
+      touch  $FRIENDLY_TMP_FOLDER/$name-$base.relief.crop.$DPI.tif
+      echo   $FRIENDLY_TMP_FOLDER/$name-$base.relief.crop.$DPI.tif
   else
       echo   SHADED RELIEF, creating $FRIENDLY_TMP_FOLDER/$name-$base.relief.$DPI.tif
 
@@ -158,6 +168,7 @@ makeWebP() {
 
 
 export FRIENDLY_TMP_FOLDER="."
+export FRIENDLY_TMP_TOPO_FOLDER="./tmp/topo"
 echo FRIENDLY_TMP_FOLDER = $FRIENDLY_TMP_FOLDER >&2
 
 
