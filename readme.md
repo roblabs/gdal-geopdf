@@ -15,30 +15,39 @@ This project shows how to process GeoPDFs from the [USGS](https://viewer.nationa
 Inspecting the response from `gdalinfo` with the option `-mdd` yields some interesting metadata.
 
 ```bash
-# get GeoPDF of Crater Lake West
-wget https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/1/26110/8414580.pdf
+# get Geospatial PDF of Crater Lake West
+# Metadata from nationalmap.gov 
+  # USGS US Topo 7.5-minute map for Crater Lake West, OR 2017
+  # Published Date:  2017-03-23
+  # Format:  GeoPDF (27.87 MB), Extent:  7.5 x 7.5 minute
 
-gdalinfo -mdd LAYERS 8414580.pdf
+# Make a temp directory and save as a temp file name
+mkdir -p tmp
+wget -O tmp/test.pdf https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/OR/OR_Crater_Lake_West_20170323_TM_geo.pdf
 
-LAYER_00_NAME=Map_Collar
+gdalinfo -mdd LAYERS tmp/test.pdf
 
-LAYER_02_NAME=Map_Frame
-LAYER_03_NAME=Map_Frame.Projection_and_Grids
-LAYER_04_NAME=Map_Frame.Geographic_Names
-LAYER_05_NAME=Map_Frame.Structures
-LAYER_06_NAME=Map_Frame.Transportation
+# output
+  LAYER_00_NAME=Map_Collar
+  LAYER_01_NAME=Map_Collar.Map_Elements
+  LAYER_02_NAME=Map_Frame
+  LAYER_03_NAME=Map_Frame.Projection_and_Grids
+  LAYER_04_NAME=Map_Frame.Geographic_Names
+  LAYER_05_NAME=Map_Frame.Structures
+  LAYER_06_NAME=Map_Frame.Transportation
 
-LAYER_12_NAME=Map_Frame.PLSS
-LAYER_13_NAME=Map_Frame.Hydrography
-LAYER_14_NAME=Map_Frame.Terrain
-LAYER_15_NAME=Map_Frame.Terrain.Contours
-LAYER_16_NAME=Map_Frame.Terrain.Shaded_Relief
-LAYER_17_NAME=Map_Frame.Woodland
-LAYER_18_NAME=Map_Frame.Boundaries
+  LAYER_12_NAME=Map_Frame.PLSS
+  LAYER_13_NAME=Map_Frame.Wetlands
+  LAYER_14_NAME=Map_Frame.Hydrography
+  LAYER_15_NAME=Map_Frame.Terrain
+  LAYER_16_NAME=Map_Frame.Terrain.Contours
+  LAYER_17_NAME=Map_Frame.Terrain.Shaded_Relief
+  LAYER_18_NAME=Map_Frame.Woodland
+  LAYER_19_NAME=Map_Frame.Boundaries
 
-LAYER_28_NAME=Images
-LAYER_29_NAME=Images.Orthoimage
-LAYER_30_NAME=Barcode
+  LAYER_29_NAME=Images
+  LAYER_30_NAME=Images.Orthoimage
+  LAYER_31_NAME=Barcode
 
 ```
 
@@ -49,6 +58,8 @@ LAYER_30_NAME=Barcode
 * PDF dimensions
 
 ```
+Driver: PDF/Geospatial PDF
+Files: tmp/test.pdf
 Size is 3412, 4350
 ```
 
@@ -65,24 +76,24 @@ Size is 3412, 4350
 * Convert to GeoTIFF,
 
 ``` bash
-DPI=300
-gdal_translate 8414580.pdf 8414580.$DPI.tif \
+DPI=150
+gdal_translate tmp/test.pdf tmp/test.$DPI.tif \
   -co COMPRESS=LZW \
   --config GDAL_PDF_DPI $DPI
 
 # Extract
-gdalwarp 8414580.$DPI.tif 8414580.$DPI.wizard-island.tif \
+gdalwarp tmp/test.$DPI.tif tmp/test.$DPI.wizard-island.tif \
   -t_srs EPSG:4326 -dstalpha \
   -co COMPRESS=LZW \
   -te -122.17833 42.92361 -122.13799 42.95766
 
 
-gdal_translate 8414580.pdf 8414580.$DPI.Shaded_Relief.tif \
+gdal_translate tmp/test.pdf tmp/test.$DPI.Shaded_Relief.tif \
   -co COMPRESS=LZW \
     --config GDAL_PDF_LAYERS "Map_Collar.Map_Elements,Map_Frame.Terrain.Shaded_Relief" \
   --config GDAL_PDF_DPI $DPI
 
-gdalwarp 8414580.$DPI.Shaded_Relief.tif 8414580.$DPI.Shaded_Relief.wizard-island.tif \
+gdalwarp tmp/test.$DPI.Shaded_Relief.tif tmp/test.$DPI.Shaded_Relief.wizard-island.tif \
   -co COMPRESS=LZW \
   -t_srs EPSG:4326 -dstalpha \
   -te -122.17833 42.92361 -122.13799 42.95766
