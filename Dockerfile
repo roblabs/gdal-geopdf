@@ -7,14 +7,19 @@
 # Build
 #  docker build -t roblabs/usgs:usgs .
 
-# https://github.com/roblabs/gdal-docker
-FROM roblabs/gdal:latest
-
+# Please see the OSGEO GDAL Docker images — https://hub.docker.com/r/osgeo/gdal
+FROM osgeo/gdal:alpine-normal-latest
 
 # https://docs.docker.com/engine/reference/builder/#add
 ADD usgs.sh /usr/local/bin/
 ADD go-single.sh /usr/local/bin/
 ADD go-webp-png.sh /usr/local/bin/
 ADD version.sh /usr/local/bin/
-RUN wget https://raw.githubusercontent.com/roblabs/gdal2tilesp/WEBP-png/gdal2tilesp.py -P /usr/local/bin/
+RUN wget https://raw.githubusercontent.com/roblabs/gdal2tilesp/master/gdal2tilesp.py -P /usr/local/bin/
 RUN chmod 755 /usr/local/bin/gdal2tilesp.py
+
+# Externally accessible data is by default put in /data
+# https://docs.docker.com/engine/reference/builder/#volume
+# https://docs.docker.com/engine/reference/builder/#workdir
+WORKDIR /data
+VOLUME ["/data"]
