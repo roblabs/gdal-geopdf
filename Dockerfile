@@ -5,7 +5,7 @@
 #  docker run -it --rm -v "$(pwd)":/data roblabs/usgs:usgs gdalinfo --formats | grep PDF
 
 # Build
-#  docker build -t roblabs/usgs:usgs .
+#  docker build --no-cache -t roblabs/usgs:usgs .
 
 # Please see the OSGEO GDAL Docker images — https://hub.docker.com/r/osgeo/gdal
 FROM osgeo/gdal:alpine-normal-latest
